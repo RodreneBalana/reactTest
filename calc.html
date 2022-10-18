@@ -1,0 +1,228 @@
+
+<link rel="stylesheet" href="calc.css">
+
+<div class="container">
+    <p>
+        This component works exactly like the calculator you know. Click any number to start calculating!
+    </p>
+
+    <div class="calculator">
+        <div class="calculator__display">0</div>
+        <div class="calculator__keys">
+            <button class="key--operator" data-action="add">+</button>
+            <button class="key--operator" data-action="subtract">-</button>
+            <button class="key--operator" data-action="multiply">&times;</button>
+            <button class="key--operator" data-action="divide">&divide;</button>
+            <button>7</button>
+            <button>8</button>
+            <button>9</button>
+            <button>4</button>
+            <button>5</button>
+            <button>6</button>
+            <button>1</button>
+            <button>2</button>
+            <button>3</button>
+            <button>0</button>
+            <button data-action="decimal">.</button>
+            <button data-action="clear">AC</button>
+            <button class="key--equal" data-action="calculate">=</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+const calculator = document.querySelector('.calculator')
+const keys = calculator.querySelector('.calculator__keys')
+const display = document.querySelector('.calculator__display')
+
+const calculate = (n1, operator, n2) => {
+    const firstNum = parseFloat(n1)
+    const secondNum = parseFloat(n2)
+
+    if (operator === 'add') return firstNum + secondNum
+    if (operator === 'subtract') return firstNum - secondNum
+    if (operator === 'multiply') return firstNum * secondNum
+    if (operator === 'divide') return firstNum / secondNum
+    
+}
+
+//Listens for key presses
+keys.addEventListener('click', e=> {
+
+    if (e.target.matches('button')) {
+        const key = e.target
+        const action = key.dataset.action
+        const keyContent = key.textContent
+        const displayedNum = display.textContent
+        const previousKeyType = calculator.dataset.previousKeyType
+
+        //Pure function
+        const resultString = createResultString = () => {
+            if (!action){
+                if (
+                    displayedNum == '0' ||
+                    previousKeyType === 'operator' ||
+                    previousKeyType === 'calculate'
+                    ) {
+                    display.textContent = keyContent
+                } else {
+                    display.textContent = displayedNum + keyContent
+                }
+            } 
+        }
+
+        //Impure function
+        display.textContent = resultString
+        updateCalculatorState()
+
+    }
+    /*
+    if (e.target.matches('button')) {
+        const key = e.target
+        const action = key.dataset.action
+        const keyContent = key.textContent
+        const displayedNum = display.textContent
+        const previousKeyType = calculator.dataset.previousKeyType
+
+        //Clears is-depressed class
+        Array.from(key.parentNode.children)
+            .forEach(k => k.classList.remove('is-depressed'))
+
+        //Categorizes key presses
+
+        //Number Keys
+        if (!action) {
+
+            //Checks if current display is zero or previous key was an operator/equals then overwrites display
+            if (displayedNum === '0' || 
+                previousKeyType === 'operator' || 
+                previousKeyType === 'calculate'
+            ) {
+                display.textContent = keyContent
+            } else {
+            //Otherwise, appends existing display 
+                display.textContent = displayedNum + keyContent
+            }
+
+            //Stores key type
+            calculator.dataset.previousKeyType = 'number'
+        }
+        
+        //Operators
+        if (
+            action === 'add' ||
+            action === 'subtract' ||
+            action === 'multiply' ||
+            action === 'divide'
+        ) {
+            const firstValue = calculator.dataset.firstValue
+            const operator = calculator.dataset.operator
+            const secondValue = displayedNum
+
+            // If firstValue AND operator exists AND previousKeyType isn't an operator/equal, calculate value
+            if (firstValue && 
+                operator &&
+                previousKeyType !== 'operator' &&
+                previousKeyType !== 'calculate'
+            ) {
+                const calcValue = calculate(firstValue, operator, secondValue)
+                
+                //Sends calculated value to display (finlizes at end of this function)
+                display.textContent = calcValue
+
+                //Sets firstValue from calcValue for consecutive calculation
+                calculator.dataset.firstValue = calcValue
+            } else {
+                //Stores current display as first value
+                calculator.dataset.firstValue = displayedNum
+            }
+
+            //Depresses button (sadge)
+            key.classList.add('is-depressed') 
+            calculator.dataset.operator = action
+            //Stores previoulsly pressed key type
+            calculator.dataset.previousKeyType = 'operator'
+        }
+
+        //Decimal
+        if (action === 'decimal') {
+
+                //When previous button was an operator. Displays .0 if so
+            if (previousKeyType === 'operator' ||
+                previousKeyType === 'calculate' ) {
+                display.textContent = '0.'
+                //Stores key type
+                calculator.dataset.previousKeyType = 'decimal'
+
+                //Prevents redundant decimal when displayNum DOESNT include a decimal
+            } else if (!displayedNum.includes('.')) {
+                display.textContent = displayedNum + '.'
+                //Stores key type
+                calculator.dataset.previousKeyType = 'decimal'
+            }
+        }
+
+        //Clear
+        if (action === 'clear') {
+            //Clears variables if AC
+            if (key.textContent === 'AC') {
+                calculator.dataset.firstValue = ''
+                calculator.dataset.modValue = ''
+                calculator.dataset.operator =''
+                calculator.dataset.previousKeyType = ''
+            } else {
+                //Changes current key (AC/CE) to AC if CE is pressed
+                key.textContent = 'AC'
+            }
+
+            //Clears content
+            display.textContent = '0'
+
+            //Stores key type
+            calculator.dataset.previousKeyType = 'clear'
+        }
+
+        //Not Clear
+         if (action !== 'clear') {
+
+            //Selects Clear button since current selected key is anything else
+            const clearButton = calculator.querySelector('[data-action=clear]')
+            clearButton.textContent = 'CE'
+         }
+
+        //Equal || Calculate
+        if (action === 'calculate') {
+
+            //Retrieves the 2 values and operator
+            let firstValue = calculator.dataset.firstValue
+            const operator = calculator.dataset.operator
+            let secondValue = displayedNum
+            
+            //Checks existing operand to prevent blank calculations
+            if (firstValue) {
+                //Consecutive equal signs. Puts previous result as first value and keeps 2nd value from previous calculation
+                if (previousKeyType === 'calculate') {
+                    firstValue = displayedNum
+                    secondValue = calculator.dataset.modValue
+                }
+
+                //Calculate result only when operands exist
+                display.textContent = calculate(firstValue, operator, secondValue)
+
+                console.log (firstValue)
+                console.log (secondValue)
+                console.log (calculate(firstValue, operator, secondValue) )
+            }
+
+            //Sets modValue for storing secondValue
+            calculator.dataset.modValue = secondValue
+            //Stores key type
+            calculator.dataset.previousKeyType = 'calculate'
+        }
+
+    }
+    */
+})
+
+</script>
